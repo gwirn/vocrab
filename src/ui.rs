@@ -202,5 +202,7 @@ pub fn show_stats(
 }
 
 pub fn clear_screen() {
-    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+    print!("\x1Bc");
+    if io::stdout().flush().is_ok() {};
+    // print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
 }

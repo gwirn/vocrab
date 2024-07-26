@@ -16,8 +16,7 @@ mod startpage;
 mod ui;
 mod utils;
 
-fn main() {
-    // csv_2_cbor("../vocabulary/test.csv", "../vocabulary/Unit2.cbor");
+fn start() {
     let vocrab_base = match env::var("VOCRAB") {
         Ok(p) => p,
         Err(_) => {
@@ -37,18 +36,23 @@ fn main() {
         Some((Width(ww), Height(hh))) => (ww.into(), hh.into()),
         None => (0, 0),
     };
-    let vocabs = get_vocabs(vocrab_base_path);
-    let sp = StartPage {
-        selected_unit: "Unit1",
-        all_units: vocabs.clone(),
+    let mut vocabs = get_vocabs(vocrab_base_path);
+    let vocab_path = vocrab_base_path.join("vocabulary");
+    let srs = mean_sr(vocab_path.clone(), &vocabs);
+    vocabs.sort_by(|a, b| srs[a].total_cmp(&srs[b]));
+
+    let mut sp = StartPage {
+        selected_unit: "".to_string(),
+        all_units: &vocabs.clone(),
+        mean_sr: &srs,
         term_width: w as f32,
         term_height: h as f32,
+        vocab_path: vocab_path.clone(),
     };
     let unit = sp.show_and_select();
-    exercise_unit(
-        w,
-        h,
-        vocrab_base_path.join("vocabulary").join(&vocabs[unit]),
-        &vocabs[unit],
-    );
+    exercise_unit(w, h, vocab_path.join(&sp.selected_unit), &sp.selected_unit);
+}
+fn main() {
+    // csv_2_cbor("../vocabulary/test.csv", "../vocabulary/Unit2.cbor");
+    start()
 }
