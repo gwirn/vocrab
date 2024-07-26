@@ -11,3 +11,4 @@ serde_cbor = "0.11.2"
 terminal_size="0.3.0"
 nu-ansi-term = "0.49"
 rand = "0.8.5"
+clap = { version = "4.5.11", features = ["derive"] }

@@ -14,7 +14,13 @@ enum InputAction {
     QuitTotal,
     QuitTotalNoSave,
 }
-pub fn exercise_unit(term_width: usize, term_height: usize, data_path: PathBuf, unit_desc: &str) {
+pub fn exercise_unit(
+    term_width: usize,
+    term_height: usize,
+    data_path: PathBuf,
+    unit_desc: &str,
+    ab: bool,
+) {
     let mut word_data = access_cbor(data_path.clone());
     let t_width = term_width as f32;
     let t_height = term_height as f32;
@@ -54,7 +60,7 @@ pub fn exercise_unit(term_width: usize, term_height: usize, data_path: PathBuf, 
             word: &i_word,
             user_answer: "".to_string(),
             answer_correct: false,
-            ab: true,
+            ab: ab,
             term_width: t_width,
             term_height: t_height,
             left_spacing_word: 0,
@@ -77,7 +83,7 @@ pub fn exercise_unit(term_width: usize, term_height: usize, data_path: PathBuf, 
         match next_act {
             InputAction::NextWord => continue,
             InputAction::QuitUnit => break,
-            InputAction::QuitUnitNoSave => return,
+            InputAction::QuitUnitNoSave => start(),
             InputAction::QuitTotalNoSave => {
                 clear_screen();
                 process::exit(0)
@@ -85,7 +91,7 @@ pub fn exercise_unit(term_width: usize, term_height: usize, data_path: PathBuf, 
             InputAction::QuitTotal => {
                 update_cbor(data_path.clone(), &word_data);
                 clear_screen();
-                println!("Vocrab saved current progress and quit");
+                println!("Vo🦀 saved current progress and quit");
                 process::exit(0)
             }
         }

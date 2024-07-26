@@ -1,9 +1,14 @@
-use crate::{access_cbor, calc_spacing, clear_screen, left_pad, top_pad};
+use crate::{
+    access_cbor, calc_spacing, clear_screen, exercise_unit, get_vocabs, left_pad, top_pad,
+};
+use std::env;
+use std::path::Path;
 use std::{
     collections::HashMap,
     io::{self, Write},
     path::PathBuf,
 };
+use terminal_size::{terminal_size, Height, Width};
 
 pub struct StartPage<'a> {
     pub selected_unit: String,
@@ -12,6 +17,7 @@ pub struct StartPage<'a> {
     pub term_width: f32,
     pub term_height: f32,
     pub vocab_path: PathBuf,
+    pub ab: bool,
 }
 impl StartPage<'_> {
     pub fn show_and_select(&mut self) {
@@ -41,7 +47,10 @@ impl StartPage<'_> {
         if io::stdout().flush().is_ok() {};
         let mut inp = String::new();
         if io::stdin().read_line(&mut inp).is_ok() {}
-        match inp.trim().parse::<usize>() {
+        let inp_whole = inp.trim();
+        self.ab = !inp_whole.ends_with("r");
+        let inp_no_r = inp_whole.replace("r", "");
+        match inp_no_r.parse::<usize>() {
             Ok(x) => {
                 if x > self.all_units.len() - 1 {
                     self.show_and_select();
@@ -69,4 +78,48 @@ pub fn mean_sr(vocab_path: PathBuf, all_units: &[String]) -> HashMap<String, f64
         .map(|(x, y)| (y.clone(), x.clone()))
         .collect();
     sr_map
+}
+
+pub fn start() {
+    let vocrab_base = match env::var("VOCRAB") {
+        Ok(p) => p,
+        Err(_) => {
+            eprintln!(
+                "Unable to access VOCRAB environment variable - assuming current directory as base"
+            );
+            match env::current_dir() {
+                Ok(p) => p.to_str().expect("Unable to get current dir").to_string(),
+                Err(_) => ".".to_string(),
+            }
+        }
+    };
+    let vocrab_base_path = Path::new(&vocrab_base);
+
+    let size = terminal_size();
+    let (w, h): (usize, usize) = match size {
+        Some((Width(ww), Height(hh))) => (ww.into(), hh.into()),
+        None => (0, 0),
+    };
+    let mut vocabs = get_vocabs(vocrab_base_path);
+    let vocab_path = vocrab_base_path.join("vocabulary");
+    let srs = mean_sr(vocab_path.clone(), &vocabs);
+    vocabs.sort_by(|a, b| srs[a].total_cmp(&srs[b]));
+
+    let mut sp = StartPage {
+        selected_unit: "".to_string(),
+        all_units: &vocabs.clone(),
+        mean_sr: &srs,
+        term_width: w as f32,
+        term_height: h as f32,
+        vocab_path: vocab_path.clone(),
+        ab: true,
+    };
+    let unit = sp.show_and_select();
+    exercise_unit(
+        w,
+        h,
+        vocab_path.join(&sp.selected_unit),
+        &sp.selected_unit,
+        sp.ab,
+    );
 }
