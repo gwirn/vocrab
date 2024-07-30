@@ -38,7 +38,7 @@ pub fn csv_2_cbor(path: &str, cbor_path: &str) {
     let file = File::open(path).expect("Couldn't read map file");
     let buffer = BufReader::new(file).lines();
     let mut words = HashMap::new();
-    for (ci, i) in buffer.enumerate().into_iter() {
+    for (ci, i) in buffer.enumerate() {
         let line = match i {
             Ok(l) => l,
             Err(e) => {
@@ -47,7 +47,7 @@ pub fn csv_2_cbor(path: &str, cbor_path: &str) {
                 continue;
             }
         };
-        let split_line: Vec<_> = line.trim().split(",").collect();
+        let split_line: Vec<_> = line.trim().split(',').collect();
         assert!(
             split_line.len() == 2,
             "line {} '{}' is split into {} parts instead of 2",
@@ -56,8 +56,8 @@ pub fn csv_2_cbor(path: &str, cbor_path: &str) {
             split_line.len()
         );
         let conv_line = Word {
-            lang_a: split_line[0].to_string(),
-            lang_b: split_line[1].to_string(),
+            lang_a: split_line[0].trim().to_string(),
+            lang_b: split_line[1].trim().to_string(),
             success: 0,
             failed: 0,
             success_rate: 0.,
@@ -71,10 +71,7 @@ pub fn csv_2_cbor(path: &str, cbor_path: &str) {
 pub fn update_cbor(cbor_path: PathBuf, word_map: &HashMap<usize, Word>) {
     let tmp_path = tmp_filepath(cbor_path.clone());
     let tmppathbind = tmp_path.clone();
-    let tmp_path_disp = match tmppathbind.to_str() {
-        Some(p) => p,
-        None => "Can't display tmp path",
-    };
+    let tmp_path_disp = tmppathbind.to_str().unwrap_or("Can't display tmp path");
 
     if Path::new(&cbor_path).exists() {
         fs::rename(cbor_path.clone(), tmp_path.clone())

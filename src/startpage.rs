@@ -1,13 +1,13 @@
 use crate::{
     access_cbor, calc_spacing, clear_screen, exercise_unit, get_vocabs, left_pad, top_pad,
 };
-use std::env;
 use std::path::Path;
 use std::{
     collections::HashMap,
     io::{self, Write},
     path::PathBuf,
 };
+use std::{env, process};
 use terminal_size::{terminal_size, Height, Width};
 
 pub struct StartPage<'a> {
@@ -33,7 +33,12 @@ impl StartPage<'_> {
         println!("Enter number on the left side to select a unit");
         let srs = self.mean_sr;
         for (ci, i) in self.all_units.iter().enumerate() {
-            let selection_string = format!("{} for unit {}  Success rate: {:.2}", ci, i, srs[i]);
+            let selection_string = format!(
+                "{} for unit {}  Success rate: {:.2}",
+                ci,
+                i.replace(".cbor", ""),
+                srs[i]
+            );
             println!(
                 "{}",
                 left_pad(
@@ -48,8 +53,12 @@ impl StartPage<'_> {
         let mut inp = String::new();
         if io::stdin().read_line(&mut inp).is_ok() {}
         let inp_whole = inp.trim();
-        self.ab = !inp_whole.ends_with("r");
-        let inp_no_r = inp_whole.replace("r", "");
+        self.ab = !inp_whole.ends_with('r');
+        let inp_no_r = inp_whole.replace('r', "");
+        if inp_whole == ":qa" {
+            clear_screen();
+            process::exit(0)
+        }
         match inp_no_r.parse::<usize>() {
             Ok(x) => {
                 if x > self.all_units.len() - 1 {
@@ -68,14 +77,14 @@ pub fn mean_sr(vocab_path: PathBuf, all_units: &[String]) -> HashMap<String, f64
         .iter()
         .map(|x| {
             let word_map = access_cbor(vocab_path.join(x));
-            word_map.iter().map(|(_, y)| y.success_rate).sum::<f64>() / word_map.len() as f64
+            word_map.values().map(|y| y.success_rate).sum::<f64>() / word_map.len() as f64
         })
         .collect();
     let sr_map: HashMap<_, _> = srs
         .clone()
         .iter()
         .zip(all_units)
-        .map(|(x, y)| (y.clone(), x.clone()))
+        .map(|(x, y)| (y.clone(), *x))
         .collect();
     sr_map
 }
@@ -114,7 +123,7 @@ pub fn start() {
         vocab_path: vocab_path.clone(),
         ab: true,
     };
-    let unit = sp.show_and_select();
+    sp.show_and_select();
     exercise_unit(
         w,
         h,

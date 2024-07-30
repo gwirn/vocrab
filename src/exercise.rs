@@ -19,7 +19,7 @@ pub fn exercise_unit(
     term_height: usize,
     data_path: PathBuf,
     unit_desc: &str,
-    ab: bool,
+    atob: bool,
 ) {
     let mut word_data = access_cbor(data_path.clone());
     let t_width = term_width as f32;
@@ -47,7 +47,7 @@ pub fn exercise_unit(
             n_wrong,
             t_width,
         );
-        let i_word: &mut files::Word = match word_data.get_mut(&i) {
+        let i_word: &mut files::Word = match word_data.get_mut(i) {
             Some(word) => word,
             None => {
                 eprintln!("Can't access word with id {}", i);
@@ -57,10 +57,10 @@ pub fn exercise_unit(
             }
         };
         let mut q = Question {
-            word: &i_word,
+            word: i_word,
             user_answer: "".to_string(),
             answer_correct: false,
-            ab: ab,
+            ab: atob,
             term_width: t_width,
             term_height: t_height,
             left_spacing_word: 0,
@@ -123,7 +123,7 @@ pub fn exercise_unit(
             10
         }
     }] {
-        let i_word: &mut files::Word = match word_data.get_mut(&i) {
+        let i_word: &mut files::Word = match word_data.get_mut(i) {
             Some(word) => word,
             None => {
                 continue;
@@ -147,24 +147,20 @@ pub fn exercise_unit(
     let mut act_string: String = String::new();
     if io::stdin().read_line(&mut act_string).is_ok() {}
     let next_act = convert_commands(act_string.trim());
-    match next_act {
-        InputAction::QuitTotal => {
-            clear_screen();
-            process::exit(0)
-        }
-        _ => {}
+    if let InputAction::QuitTotal = next_act {
+        clear_screen();
+        process::exit(0)
     }
 
     start()
 }
 
 fn convert_commands(inp: &str) -> InputAction {
-    let action = match inp {
+    match inp {
         ":q" => InputAction::QuitUnit,
         ":fqu" => InputAction::QuitUnitNoSave,
         ":qa" => InputAction::QuitTotal,
         ":fqa" => InputAction::QuitTotalNoSave,
-        "" | _ => InputAction::NextWord,
-    };
-    action
+        _ => InputAction::NextWord,
+    }
 }
