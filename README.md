@@ -26,6 +26,7 @@ This creates the needed data structure to read the vocabulary and store your pro
 By default the words on the left will be shown to you and you will have to enter the words on the right.
 
 ## Commands
+For next action
 ```
 type :q to quit unit
 type :q! to quit unit without saving
