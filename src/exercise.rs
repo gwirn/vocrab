@@ -158,9 +158,9 @@ pub fn exercise_unit(
 fn convert_commands(inp: &str) -> InputAction {
     match inp {
         ":q" => InputAction::QuitUnit,
-        ":fqu" => InputAction::QuitUnitNoSave,
+        ":q!" => InputAction::QuitUnitNoSave,
         ":qa" => InputAction::QuitTotal,
-        ":fqa" => InputAction::QuitTotalNoSave,
+        ":qa!" => InputAction::QuitTotalNoSave,
         _ => InputAction::NextWord,
     }
 }

@@ -10,6 +10,7 @@ use std::{
 use std::{env, process};
 use terminal_size::{terminal_size, Height, Width};
 
+const NEWLINE: &str = "\n";
 pub struct StartPage<'a> {
     pub selected_unit: String,
     pub all_units: &'a [String],
@@ -22,15 +23,7 @@ pub struct StartPage<'a> {
 impl StartPage<'_> {
     pub fn show_and_select(&mut self) {
         clear_screen();
-        print!(
-            "{}",
-            top_pad(
-                "",
-                calc_spacing(self.all_units.len(), self.term_height),
-                self.term_height
-            )
-        );
-        println!("Enter number on the left side to select a unit");
+        let mut unit_desc = format!("Enter number on the left side to select a unit{}", NEWLINE);
         let srs = self.mean_sr;
         for (ci, i) in self.all_units.iter().enumerate() {
             let selection_string = format!(
@@ -39,16 +32,60 @@ impl StartPage<'_> {
                 i.replace(".cbor", ""),
                 srs[i]
             );
-            println!(
+            let unit_line = format!(
                 "{}",
                 left_pad(
                     &selection_string,
                     calc_spacing(selection_string.len(), self.term_width),
                     self.term_width
                 )
-            )
+            );
+            unit_desc = format!("{}{}{}", unit_desc, NEWLINE, unit_line);
         }
-        print!("Your choice: ");
+        unit_desc = format!("{}{}Your choice: ", unit_desc, NEWLINE);
+        let command_display = format!(
+            "{}{}{}{}{}{}{}{}{}{}{}{}",
+            left_pad(
+                "type :q to quit unit",
+                calc_spacing(39, self.term_width),
+                self.term_width
+            ),
+            NEWLINE,
+            left_pad(
+                "type :q! to quit unit without saving",
+                calc_spacing(39, self.term_width),
+                self.term_width
+            ),
+            NEWLINE,
+            left_pad(
+                "type :qa to quit vocrab",
+                calc_spacing(39, self.term_width),
+                self.term_width
+            ),
+            NEWLINE,
+            left_pad(
+                "type :qa! to quit vocrab without saving",
+                calc_spacing(39, self.term_width),
+                self.term_width
+            ),
+            NEWLINE,
+            left_pad(
+                "type 'NUMBER'r to reverse question order",
+                calc_spacing(39, self.term_width),
+                self.term_width
+            ),
+            NEWLINE,
+            NEWLINE,
+            NEWLINE,
+        );
+        print!(
+            "{}",
+            top_pad(
+                &format!("{}{}", command_display, unit_desc),
+                calc_spacing(self.all_units.len() + 7, self.term_height),
+                self.term_height
+            )
+        );
         if io::stdout().flush().is_ok() {};
         let mut inp = String::new();
         if io::stdin().read_line(&mut inp).is_ok() {}
